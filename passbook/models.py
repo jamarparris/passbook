@@ -57,13 +57,13 @@ class NumberStyle:
 
 class Field(object):
 
-    def __init__(self, key, value, label=''):
+    def __init__(self, key, value, label='', changeMessage='', textAlignment=Alignment.LEFT):
 
         self.key = key  # Required. The key must be unique within the scope
         self.value = value  # Required. Value of the field. For example, 42
         self.label = label  # Optional. Label text for the field.
-        self.changeMessage = ''  # Optional. Format string for the alert text that is displayed when the pass is updated
-        self.textAlignment = Alignment.LEFT
+        self.changeMessage = changeMessage  # Optional. Format string for the alert text that is displayed when the pass is updated
+        self.textAlignment = textAlignment
 
     def json_dict(self):
         return self.__dict__
@@ -71,11 +71,11 @@ class Field(object):
 
 class DateField(Field):
 
-    def __init__(self, key, value, label=''):
-        super(DateField, self).__init__(key, value, label)
-        self.dateStyle = DateStyle.SHORT  # Style of date to display
-        self.timeStyle = DateStyle.SHORT  # Style of time to display
-        self.isRelative = False  # If true, the labels value is displayed as a relative date
+    def __init__(self, key, value, label='', dateStyle=DateStyle.SHORT, timeStyle=DateStyle.SHORT, isRelative=False, *args, **kwargs):
+        super(DateField, self).__init__(key, value, label, *args, **kwargs)
+        self.dateStyle = dateStyle  # Style of date to display
+        self.timeStyle = timeStyle  # Style of time to display
+        self.isRelative = isRelative  # If true, the labels value is displayed as a relative date
 
     def json_dict(self):
         return self.__dict__
@@ -83,9 +83,9 @@ class DateField(Field):
 
 class NumberField(Field):
 
-    def __init__(self, key, value, label=''):
-        super(NumberField, self).__init__(key, value, label)
-        self.numberStyle = NumberStyle.DECIMAL  # Style of date to display
+    def __init__(self, key, value, label='', numberStyle=NumberStyle.DECIMAL, *args, **kwargs):
+        super(NumberField, self).__init__(key, value, label, *args, **kwargs)
+        self.numberStyle = numberStyle  # Style of date to display
 
     def json_dict(self):
         return self.__dict__
@@ -93,8 +93,8 @@ class NumberField(Field):
 
 class CurrencyField(NumberField):
 
-    def __init__(self, key, value, label='', currencyCode=''):
-        super(CurrencyField, self).__init__(key, value, label)
+    def __init__(self, key, value, label='', currencyCode='', *args, **kwargs):
+        super(CurrencyField, self).__init__(key, value, label, *args, **kwargs)
         self.currencyCode = currencyCode  # ISO 4217 currency code
 
     def json_dict(self):
@@ -103,12 +103,12 @@ class CurrencyField(NumberField):
 
 class Barcode(object):
 
-    def __init__(self, message, format=BarcodeFormat.PDF417):
+    def __init__(self, message, format=BarcodeFormat.PDF417, messageEncoding='iso-8859-1', altText=''):
 
         self.format = format
         self.message = message  # Required. Message or payload to be displayed as a barcode
-        self.messageEncoding = 'iso-8859-1'  # Required. Text encoding that is used to convert the message
-        self.altText = ''  # Optional. Text displayed near the barcode
+        self.messageEncoding = messageEncoding  # Required. Text encoding that is used to convert the message
+        self.altText = altText  # Optional. Text displayed near the barcode
 
     def json_dict(self):
         return self.__dict__
@@ -116,12 +116,12 @@ class Barcode(object):
 
 class Location(object):
 
-    def __init__(self, latitude, longitude):
+    def __init__(self, latitude, longitude, altitude=0, relevantText=''):
 
         self.latitude = latitude  # Required. Latitude, in degrees, of the location.
         self.longitude = longitude  # Required. Longitude, in degrees, of the location.
-        self.altitude = 0  # Optional. Altitude, in meters, of the location.
-        self.relevantText = ''  # Optional. Text displayed on the lock screen when the pass is currently
+        self.altitude = altitude  # Optional. Altitude, in meters, of the location.
+        self.relevantText = relevantText  # Optional. Text displayed on the lock screen when the pass is currently
 
     def json_dict(self):
         return self.__dict__
@@ -209,7 +209,7 @@ class StoreCard(PassInformation):
 
 class Pass(object):
 
-    def __init__(self, passInformation, json='', passTypeIdentifier='', organizationName='', teamIdentifier=''):
+    def __init__(self, passInformation, json='', passTypeIdentifier='', organizationName='', teamIdentifier='', serialNumber='', description='', formatVersion=1):
 
         self._files = {}  # Holds the files to include in the .pkpass
         self._hashes = {}  # Holds the SHAs of the files array
@@ -218,9 +218,9 @@ class Pass(object):
         self.teamIdentifier = teamIdentifier  # Required. Team identifier of the organization that originated and signed the pass, as issued by Apple.
         self.passTypeIdentifier = passTypeIdentifier  # Required. Pass type identifier, as issued by Apple. The value must correspond with your signing certificate. Used for grouping.
         self.organizationName = organizationName  # Required. Display name of the organization that originated and signed the pass.
-        self.serialNumber = ''  # Required. Serial number that uniquely identifies the pass.
-        self.description = ''  # Required. Brief description of the pass, used by the iOS accessibility technologies.
-        self.formatVersion = 1  # Required. Version of the file format. The value must be 1.
+        self.serialNumber = serialNumber  # Required. Serial number that uniquely identifies the pass.
+        self.description = description  # Required. Brief description of the pass, used by the iOS accessibility technologies.
+        self.formatVersion = formatVersion  # Required. Version of the file format. The value must be 1.
 
         # Visual Appearance Keys
         self.backgroundColor = None  # Optional. Background color of the pass
