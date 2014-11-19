@@ -247,10 +247,10 @@ class Pass(object):
         self._files[name] = fd.read()
 
     # Creates the actual .pkpass file
-    def create(self, certificate, key, wwdr_certificate, password, zip_file=None):
+    def create(self, certificate=None, certificate_str=None, key=None, key_str=None, wwdr_certificate=None, wwdr_certificate_str=None, password=None, zip_file=None):
         pass_json = self._createPassJson()
         manifest = self._createManifest(pass_json)
-        signature = self._createSignature(manifest, certificate, key, wwdr_certificate, password)
+        signature = self._createSignature(manifest, certificate, certificate_str, key, key_str, wwdr_certificate, wwdr_certificate_str, password)
         if not zip_file:
             zip_file = StringIO()
         self._createZip(pass_json, manifest, signature, zip_file=zip_file)
@@ -268,19 +268,36 @@ class Pass(object):
         return json.dumps(self._hashes)
 
     # Creates a signature and saves it
-    def _createSignature(self, manifest, certificate, key, wwdr_certificate, password):
+    def _createSignature(self, manifest, certificate=None, certificate_str=None, key=None, key_str=None, wwdr_certificate=None, wwdr_certificate_str=None, password=None):
         def passwordCallback(*args, **kwds):
             return password
 
-        smime = SMIME.SMIME()
         # we need to attach wwdr cert as X509
-        wwdrcert = X509.load_cert(wwdr_certificate)
+        if wwdr_certificate:
+            wwdrcert = X509.load_cert(wwdr_certificate)
+        elif wwdr_certificate_str:
+            # handle raw certificate strings
+            wwdrcert = X509.load_cert_string(wwdr_certificate_str)
+        else:
+            raise Exception('No WWDR certificate passed to _createSignature')
+
         stack = X509_Stack()
         stack.push(wwdrcert)
+
+        smime = SMIME.SMIME()
         smime.set_x509_stack(stack)
 
-        # need to cast to string since load_key doesnt work with unicode paths
-        smime.load_key(str(key), certificate, callback=passwordCallback)
+        if certificate and key:
+            # need to cast to string since load_key doesnt work with unicode paths
+            smime.load_key(str(key), certificate, callback=passwordCallback)
+        elif certificate_str and key_str:
+            # handle raw key and certificate strings
+            keybio = SMIME.BIO.MemoryBuffer(key_str.encode('utf8'))
+            certbio = SMIME.BIO.MemoryBuffer(certificate_str.encode('utf8'))
+            smime.load_key_bio(keybio, certbio, callback=passwordCallback)
+        else:
+            raise Exception('No valid combination of certificate and key passed to _createSignature')
+
         pk7 = smime.sign(SMIME.BIO.MemoryBuffer(manifest), flags=SMIME.PKCS7_DETACHED | SMIME.PKCS7_BINARY)
 
         pem = SMIME.BIO.MemoryBuffer()
