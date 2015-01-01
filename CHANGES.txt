@@ -1,3 +1,5 @@
+v1.0.3-alpha1, 11/18/2014 -- Added support for certificate and keys as strings instead of paths.
+
 v0.1.0dev, 09/28/2012 -- Initial release.
 
 v0.1.0, 09/28/2012 -- First Released Version.
@@ -9,4 +11,4 @@ v0.2.1, 10/02/2012 -- Bugfix
 
 v0.2.3, 10/31/2012 -- Better handling of Passbook's optional parameters. Improved documentation.
 
-v1.0.0, 12/10/2012 -- Fixed barcode serialization and unicode paths. 
+v1.0.0, 12/10/2012 -- Fixed barcode serialization and unicode paths.
